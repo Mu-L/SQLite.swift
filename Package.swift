@@ -5,9 +5,6 @@ let applePlatforms: [PackageDescription.Platform] = [.iOS, .macOS, .watchOS, .tv
 let target: Target = .target(
     name: "SQLite",
     dependencies: [
-        .product(name: "SwiftToolchainCSQLite",
-                 package: "swift-toolchain-sqlite",
-                 condition: .when(traits: ["SwiftToolchainCSQLite"])),
         .product(name: "SQLiteSwiftCSQLite",
                  package: "CSQLite",
                  condition: .when(traits: ["SQLiteSwiftCSQLite"])),
@@ -31,7 +28,7 @@ let testTarget: Target = .testTarget(
 
 let defaultTraits: Set<String>
 #if os(Linux)
-defaultTraits = ["SwiftToolchainCSQLite"]
+defaultTraits = ["SQLiteSwiftCSQLite"]
 #else
 defaultTraits = ["SystemSQLite"]
 #endif
@@ -52,8 +49,6 @@ let package = Package(
     traits: [
         .trait(name: "SystemSQLite",
               description: "Uses the system-provided SQLite (on Apple platforms)"),
-        .trait(name: "SwiftToolchainCSQLite",
-               description: "Include SQLite from the Swift toolchain"),
         .trait(name: "SQLiteSwiftCSQLite",
                description: "Include SQLite from SQLite.swift, based on the toolchain version"),
         // this will note compile, just included for sake of completeness
@@ -66,7 +61,6 @@ let package = Package(
         .default(enabledTraits: defaultTraits)
     ],
     dependencies: [
-        .package(url: "https://github.com/swiftlang/swift-toolchain-sqlite", from: "1.0.7"),
         .package(url: "https://github.com/stephencelis/CSQLite", from: "3.50.4", traits: [.trait(name: "FTS5", condition: .when(traits: ["FTS5"]))]),
         .package(url: "https://github.com/sqlcipher/SQLCipher.swift", from: "4.11.0")
     ],

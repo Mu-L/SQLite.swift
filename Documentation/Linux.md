@@ -7,14 +7,14 @@ See [#1071](https://github.com/stephencelis/SQLite.swift/issues/1071).
 
 ## Installation
 
-On Linux you should enable the `SwiftToolchainCSQLite` trait to automatically
+On Linux you should enable the `SQLiteSwiftCSQLite` trait to automatically
 embed SQLite:
 
   ```swift
   dependencies: [
     .package(url: "https://github.com/stephencelis/SQLite.swift.git", 
              from: "0.15.6",
-             traits: ["SwiftToolchainCSQLite"])
+             traits: ["SQLiteSwiftCSQLite"])
   ]
   ```
 

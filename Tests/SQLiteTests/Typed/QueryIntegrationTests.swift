@@ -3,8 +3,6 @@ import XCTest
 import sqlite3
 #elseif SQLCipher
 import SQLCipher
-#elseif SwiftToolchainCSQLite
-import SwiftToolchainCSQLite
 #elseif SQLiteSwiftCSQLite
 import SQLiteSwiftCSQLite
 #else
