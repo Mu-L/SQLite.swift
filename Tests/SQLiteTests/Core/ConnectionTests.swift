@@ -315,8 +315,27 @@ class ConnectionTests: SQLiteTestCase {
         assertSQL("INSERT INTO users (email) VALUES ('alice@example.com')", 2)
         assertSQL("ROLLBACK TO SAVEPOINT '2'")
         assertSQL("ROLLBACK TO SAVEPOINT '1'")
-        assertSQL("RELEASE SAVEPOINT '2'", 0)
-        assertSQL("RELEASE SAVEPOINT '1'", 0)
+        assertSQL("RELEASE SAVEPOINT '2'")
+        assertSQL("RELEASE SAVEPOINT '1'")
+    }
+
+    func test_savepoint_releasesAfterRollback() throws {
+        let rollbackError = NSError(domain: "com.stephencelis.SQLiteTests", code: 1, userInfo: nil)
+
+        XCTAssertThrowsError(try db.savepoint("1") {
+            try db.run("INSERT INTO users (email) VALUES (?)", "alice@example.com")
+            throw rollbackError
+        }) { error in
+            let error = error as NSError
+            XCTAssertEqual(rollbackError.domain, error.domain)
+            XCTAssertEqual(rollbackError.code, error.code)
+        }
+
+        XCTAssertEqual(0, try db.scalar(users.count))
+        try db.transaction {
+            try db.run("INSERT INTO users (email) VALUES (?)", "alice@example.com")
+        }
+        XCTAssertEqual(1, try db.scalar(users.count))
     }
 
     func test_updateHook_setsUpdateHook_withInsert() throws {
