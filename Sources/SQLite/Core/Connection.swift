@@ -438,23 +438,6 @@ public final class Connection {
         )
     }
 
-    fileprivate func transaction(_ begin: String, _ block: () throws -> Void, _ commit: String,
-                                 or rollback: String, followedBy cleanup: String? = nil) throws {
-        return try sync {
-            try self.run(begin)
-            do {
-                try block()
-                try self.run(commit)
-            } catch {
-                try self.run(rollback)
-                if let cleanup {
-                    try self.run(cleanup)
-                }
-                throw error
-            }
-        }
-    }
-
     /// Interrupts any long-running queries.
     public func interrupt() {
         sqlite3_interrupt(handle)
@@ -771,6 +754,27 @@ public final class Connection {
     fileprivate static let queueKey = DispatchSpecificKey<Int>()
 
     fileprivate lazy var queueContext: Int = unsafeBitCast(self, to: Int.self)
+
+}
+
+extension Connection {
+
+    fileprivate func transaction(_ begin: String, _ block: () throws -> Void, _ commit: String,
+                                 or rollback: String, followedBy cleanup: String? = nil) throws {
+        return try sync {
+            try self.run(begin)
+            do {
+                try block()
+                try self.run(commit)
+            } catch {
+                try self.run(rollback)
+                if let cleanup {
+                    try self.run(cleanup)
+                }
+                throw error
+            }
+        }
+    }
 
 }
 
