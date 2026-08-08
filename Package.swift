@@ -2,6 +2,15 @@
 import PackageDescription
 let applePlatforms: [PackageDescription.Platform] = [.iOS, .macOS, .watchOS, .tvOS, .visionOS]
 
+// Package.swift always compiles for the host, so it can't see the build
+// destination directly — an environment variable (matching the convention
+// used by swift-android-native's own `TARGET_OS_ANDROID` check) is the only
+// way to detect an Android cross-compile here. `PrivacyInfo.xcprivacy` is
+// only meaningful for the Apple App Store; declaring it as a resource makes
+// SwiftPM generate a `Bundle.module` accessor that requires linking all of
+// Foundation on Android, so it's excluded there.
+let isAndroid = Context.environment["TARGET_OS_ANDROID"] ?? "0" != "0"
+
 let target: Target = .target(
     name: "SQLite",
     dependencies: [
@@ -12,8 +21,8 @@ let target: Target = .target(
                  package: "SQLCipher.swift",
                  condition: .when(platforms: applePlatforms, traits: ["SQLCipher"]))
     ],
-    exclude: ["Info.plist"],
-    resources: [.copy("PrivacyInfo.xcprivacy")],
+    exclude: isAndroid ? ["Info.plist", "PrivacyInfo.xcprivacy"] : ["Info.plist"],
+    resources: isAndroid ? [] : [.copy("PrivacyInfo.xcprivacy")],
     cSettings: [
         .define("SQLITE_HAS_CODEC", .when(platforms: applePlatforms, traits: ["SQLCipher"]))
     ]
