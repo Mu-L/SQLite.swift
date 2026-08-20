@@ -71,11 +71,12 @@ jobs:
         VALIDATOR_SUBSPEC: SQLCipher
       run: ./run-tests.sh
     - name: "Run tests (tuist)"
+      env:
+        TUIST_USE_SWIFTERPM: '0'
       run: |
         brew update
         brew install tuist
         cd Tests/Tuist/SQLite-Test
-        swift package --package-path Tuist resolve
         tuist install
         # tuist test
   build-linux:
