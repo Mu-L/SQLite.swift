@@ -429,20 +429,13 @@ public final class Connection {
         let name = name.quote("'")
         let savepoint = "SAVEPOINT \(name)"
 
-        try transaction(savepoint, block, "RELEASE \(savepoint)", or: "ROLLBACK TO \(savepoint)")
-    }
-
-    fileprivate func transaction(_ begin: String, _ block: () throws -> Void, _ commit: String, or rollback: String) throws {
-        return try sync {
-            try self.run(begin)
-            do {
-                try block()
-                try self.run(commit)
-            } catch {
-                try self.run(rollback)
-                throw error
-            }
-        }
+        try transaction(
+            savepoint,
+            block,
+            "RELEASE \(savepoint)",
+            or: "ROLLBACK TO \(savepoint)",
+            followedBy: "RELEASE \(savepoint)"
+        )
     }
 
     /// Interrupts any long-running queries.
@@ -761,6 +754,27 @@ public final class Connection {
     fileprivate static let queueKey = DispatchSpecificKey<Int>()
 
     fileprivate lazy var queueContext: Int = unsafeBitCast(self, to: Int.self)
+
+}
+
+extension Connection {
+
+    fileprivate func transaction(_ begin: String, _ block: () throws -> Void, _ commit: String,
+                                 or rollback: String, followedBy cleanup: String? = nil) throws {
+        return try sync {
+            try self.run(begin)
+            do {
+                try block()
+                try self.run(commit)
+            } catch {
+                try self.run(rollback)
+                if let cleanup {
+                    try self.run(cleanup)
+                }
+                throw error
+            }
+        }
+    }
 
 }
 
